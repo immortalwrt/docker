@@ -24,7 +24,7 @@ jobs:
       targets: ${{ steps.list_targets.outputs.targets }}
 
     steps:
-      - name: Checkout
+      - name: Checkout ImmortalWrt source tree
         uses: actions/checkout@v2
         with:
           repository: "immortalwrt/immortalwrt"
