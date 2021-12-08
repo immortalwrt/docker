@@ -1,0 +1,9 @@
+FROM scratch
+LABEL maintainer="Tianling Shen <cnsztl@immortalwrt.org>"
+
+ADD ./rootfs/ /
+
+EXPOSE 22 80 443
+USER root
+
+CMD ["/sbin/init"]
