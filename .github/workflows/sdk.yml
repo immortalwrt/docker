@@ -1,0 +1,117 @@
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# Copyright (C) 2021 ImmortalWrt.org
+
+name: Build SDK images
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Source branch"
+        required: true
+        default: "master"
+      version:
+        description: "Release version"
+        required: true
+        default: "snapshot"
+
+jobs:
+  generate_targets:
+    name: Generate target list
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.list_targets.outputs.targets }}
+
+    steps:
+      - name: Checkout ImmortalWrt source tree
+        uses: actions/checkout@v2
+        with:
+          repository: "immortalwrt/immortalwrt"
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Generate target list
+        id: list_targets
+        run: |
+          for TARGET in $(perl ./scripts/dump-target-info.pl targets 2>/dev/null | awk '{ print $1 }'); do \
+            TARGET_LIST="${TARGET_LIST:+$TARGET_LIST,}\"${TARGET/\//-}\""; \
+          done
+          JSON_LIST="{\"runner\": [\"ubuntu-latest\"],\"targets\":[$TARGET_LIST]}"
+          echo "$JSON_LIST" | jq .
+          echo "::set-output name=targets::$JSON_LIST"
+
+  build:
+    name: Build SDK image for ${{ matrix.targets }}
+    needs: generate_targets
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.generate_targets.outputs.targets)}}
+
+    steps:
+      - name: Checkout docker repo
+        uses: actions/checkout@v2
+
+      - name: Download ImageBuilder for ${{ matrix.targets }}
+        run: ./download_files.sh sdk
+        env:
+          TARGET: ${{ matrix.targets }}
+          VERSION: ${{ github.event.inputs.version }}
+
+      - name: Get architecture
+        run: |
+          pushd sdk
+          SDK_ARCH="$(./scripts/dump-target-info.pl architectures 2>/dev/null | grep "${TARGET/-/\/}" | cut -d " " -f 1)"
+          echo "SDK_ARCH=$SDK_ARCH" | tee -a "$GITHUB_ENV"
+          popd
+        env:
+          TARGET: ${{ matrix.targets }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push ImageBuilder image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile.sdk
+          platforms: linux/amd64
+          push: true
+          tags: |
+            immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.branch }}
+            immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }}
+
+      - name: Push extra tags for architecture
+        run: |
+          docker pull immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }}
+          docker tag immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }} "immortalwrt/sdk:$SDK_ARCH-${{ github.event.inputs.branch }}"
+          docker tag immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }} "immortalwrt/sdk:$SDK_ARCH-${{ github.event.inputs.version }}"
+          docker push "immortalwrt/sdk:$SDK_ARCH-${{ github.event.inputs.branch }}"
+          docker push "immortalwrt/sdk:$SDK_ARCH-${{ github.event.inputs.version }}"
+
+      - name: Push extra tags for snapshot
+        if: ${{ github.event.inputs.version == 'snapshot' }}
+        run: |
+          docker pull immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }}
+          docker tag immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }} "immortalwrt/sdk:$SDK_ARCH"
+          docker tag immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }} immortalwrt/sdk:${{ matrix.targets }}
+          docker push "immortalwrt/sdk:$SDK_ARCH"
+          docker push immortalwrt/sdk:${{ matrix.targets }}
+
+      - name: Push extra tags for x86-64
+        if: ${{ matrix.targets == 'x86-64' }}
+        run: |
+          docker pull immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }}
+          docker tag immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }} immortalwrt/sdk:${{ github.event.inputs.branch }}
+          docker tag immortalwrt/sdk:${{ matrix.targets }}-${{ github.event.inputs.version }} immortalwrt/sdk:${{ github.event.inputs.version }}
+          docker push immortalwrt/sdk:${{ github.event.inputs.branch }}
+          docker push immortalwrt/sdk:${{ github.event.inputs.version }}
