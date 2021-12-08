@@ -1,0 +1,5 @@
+FROM immortalwrt/opde:base
+LABEL maintainer="Tianling Shen <cnsztl@immortalwrt.org>"
+
+ENV OPDE_MODE=IB
+COPY --chown=opde:opde ./ib/ /immortalwrt/
