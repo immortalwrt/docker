@@ -52,7 +52,7 @@ jobs:
       - name: Checkout docker repo
         uses: actions/checkout@v2
 
-      - name: Download ImageBuilder for ${{ matrix.targets }}
+      - name: Download SDK for ${{ matrix.targets }}
         run: ./download_files.sh sdk
         env:
           TARGET: ${{ matrix.targets }}
@@ -79,7 +79,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push ImageBuilder image
+      - name: Build and push SDK image
         uses: docker/build-push-action@v2
         with:
           context: .
