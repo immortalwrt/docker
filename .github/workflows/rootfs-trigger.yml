@@ -1,0 +1,81 @@
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# Copyright (C) 2021 ImmortalWrt.org
+
+name: Build rootfs images (trigger)
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Source branch"
+        required: true
+        default: "master"
+      version:
+        description: "Release version"
+        required: true
+        default: "snapshot"
+      target:
+        description: "Target"
+        required: true
+      arch:
+        description: "Architecture"
+        required: true
+
+jobs:
+  build:
+    name: Build rootfs image for ${{ github.event.inputs.target }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout docker repo
+        uses: actions/checkout@v2
+
+      - name: Download rootfs for ${{ github.event.inputs.target }}
+        run: ./download_files.sh rootfs
+        env:
+          TARGET: ${{ github.event.inputs.target }}
+          VERSION: ${{ github.event.inputs.version }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push rootfs image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile.rootfs
+          platforms: linux/amd64
+          push: true
+          tags: |
+            immortalwrt/rootfs:${{ github.event.inputs.arch }}-${{ github.event.inputs.branch }}
+            immortalwrt/rootfs:${{ github.event.inputs.arch }}-${{ github.event.inputs.version }}
+            immortalwrt/rootfs:${{ github.event.inputs.target }}-${{ github.event.inputs.branch }}
+            immortalwrt/rootfs:${{ github.event.inputs.target }}-${{ github.event.inputs.version }}
+
+      - name: Push extra tags for snapshot
+        if: ${{ github.event.inputs.version == 'snapshot' }}
+        run: |
+          docker pull immortalwrt/rootfs:${{ github.event.inputs.target }}-${{ github.event.inputs.version }}
+          docker tag immortalwrt/rootfs:${{ github.event.inputs.target }}-${{ github.event.inputs.version }} immortalwrt/rootfs:${{ github.event.inputs.arch }}
+          docker tag immortalwrt/rootfs:${{ github.event.inputs.target }}-${{ github.event.inputs.version }} immortalwrt/rootfs:${{ github.event.inputs.target }}
+          docker push immortalwrt/rootfs:${{ github.event.inputs.arch }}
+          docker push immortalwrt/rootfs:${{ github.event.inputs.target }}
+
+      - name: Push extra tags for x86-64
+        if: ${{ github.event.inputs.target == 'x86-64' }}
+        run: |
+          docker pull immortalwrt/rootfs:${{ github.event.inputs.target }}-${{ github.event.inputs.version }}
+          docker tag immortalwrt/rootfs:${{ github.event.inputs.target }}-${{ github.event.inputs.version }} immortalwrt/rootfs:${{ github.event.inputs.branch }}
+          docker tag immortalwrt/rootfs:${{ github.event.inputs.target }}-${{ github.event.inputs.version }} immortalwrt/rootfs:${{ github.event.inputs.version }}
+          docker push immortalwrt/rootfs:${{ github.event.inputs.branch }}
+          docker push immortalwrt/rootfs:${{ github.event.inputs.version }}
