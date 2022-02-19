@@ -18,6 +18,9 @@ on:
       target:
         description: "Target"
         required: true
+      arch:
+        description: "Architecture"
+        required: true
 
 jobs:
   build:
