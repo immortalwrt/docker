@@ -27,7 +27,7 @@ function verify_shasum(){
 
 case "$1" in
 "ib")
-	IB_NAME="$(curl -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep "imagebuilder-${TARGET%-*}" | cut -d "*" -f 2)"
+	IB_NAME="$(curl -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep -E "imagebuilder-(.*)${TARGET%-*}" | cut -d "*" -f 2)"
 	curl -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$IB_NAME"
 	verify_shasum "$IB_NAME"
 	mkdir -p "ib"
@@ -42,7 +42,7 @@ case "$1" in
 	cp -fpR "rootfs_extra"/* "rootfs"/
 	;;
 "sdk")
-	SDK_NAME="$(curl -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep "sdk-${TARGET%-*}" | cut -d "*" -f 2)"
+	SDK_NAME="$(curl -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep -E "sdk-(.*)${TARGET%-*}" | cut -d "*" -f 2)"
 	curl -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$SDK_NAME"
 	verify_shasum "$SDK_NAME"
 	mkdir -p "sdk"
