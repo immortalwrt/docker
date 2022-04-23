@@ -5,7 +5,7 @@ DOWNLOAD_URL="https://downloads.immortalwrt.org"
 if [ "$VERSION" == "snapshot" ]; then
 	DOWNLOAD_PATH="snapshots"
 else
-	DOWNLOAD_PATH="releases/$VERSION"
+	DOWNLOAD_PATH="releases/${VERSION#openwrt-}"
 fi
 DOWNLOAD_PATH+="/targets/$(echo "$TARGET" | tr "-" "/")"
 
