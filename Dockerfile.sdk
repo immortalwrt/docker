@@ -1,5 +1,10 @@
-FROM immortalwrt/opde:base
+FROM immortalwrt:base
+
 LABEL maintainer="Tianling Shen <cnsztl@immortalwrt.org>"
 
-ENV OPDE_MODE=SDK
-COPY --chown=opde:opde ./sdk/ /openwrt/
+COPY --chown=build:build ./sdk /home/build/immortalwrt
+RUN chown build:build /home/build/immortalwrt/
+
+USER build
+ENV HOME /home/build
+WORKDIR /home/build/immortalwrt/
