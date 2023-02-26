@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copyright (C) 2021 ImmortalWrt.org
 
-DOWNLOAD_URL="https://downloads.immortalwrt.org"
+DOWNLOAD_URL="https://immortalwrt.kyarucloud.moe"
 if [ "$VERSION" == "snapshot" ]; then
 	DOWNLOAD_PATH="snapshots"
 else
