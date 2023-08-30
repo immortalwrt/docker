@@ -11,7 +11,7 @@ DOWNLOAD_PATH+="/targets/$(echo "$TARGET" | tr "-" "/")"
 
 function verify_shasum(){
 	[ -n "$1" ] || exit 1
-	curl -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep "$1" > "$1.sha256sums"
+	curl --retry 3 --retry-all-errors --retry-delay 10 -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep "$1" > "$1.sha256sums"
 	LOCAL_HASH="$(sha256sum $1 | awk '{print $1}')"
 	REMOTE_HASH="$(awk '{print $1}' "$1.sha256sums")"
 	if [ "$LOCAL_HASH" == "$REMOTE_HASH" ]; then
@@ -28,14 +28,14 @@ function verify_shasum(){
 case "$1" in
 "ib")
 	IB_NAME="$(curl -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep -E "imagebuilder-(.*)${TARGET%-*}" | cut -d "*" -f 2)"
-	curl -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$IB_NAME"
+	curl --retry 3 --retry-all-errors --retry-delay 10 -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$IB_NAME"
 	verify_shasum "$IB_NAME"
 	mkdir -p "ib"
 	tar -vxf "$IB_NAME" -C "ib"/ --strip-components 1
 	;;
 "rootfs")
 	ROOTFS_NAME="$(curl -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep "\-rootfs.tar.gz" | cut -d "*" -f 2)"
-	curl -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$ROOTFS_NAME"
+	curl --retry 3 --retry-all-errors --retry-delay 10 -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$ROOTFS_NAME"
 	verify_shasum "$ROOTFS_NAME"
 	mkdir -p "rootfs"
 	tar -vxf "$ROOTFS_NAME" -C "rootfs"/ --strip-components 1
@@ -43,7 +43,7 @@ case "$1" in
 	;;
 "sdk")
 	SDK_NAME="$(curl -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep -E "sdk-(.*)${TARGET%-*}" | cut -d "*" -f 2)"
-	curl -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$SDK_NAME"
+	curl --retry 3 --retry-all-errors --retry-delay 10 -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$SDK_NAME"
 	verify_shasum "$SDK_NAME"
 	mkdir -p "sdk"
 	tar -vxf "$SDK_NAME" -C "sdk"/ --strip-components 1
