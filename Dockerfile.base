@@ -5,11 +5,13 @@ RUN apt-get update -qq && \
         build-essential \
         ccache \
         clang \
+        cpio \
         curl \
         file \
         g++-multilib \
         gawk \
         gcc-multilib \
+        genisoimage \
         gettext \
         git \
         libdw-dev \
