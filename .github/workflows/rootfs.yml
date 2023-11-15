@@ -24,10 +24,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: armvirt-32
+          - target: armsr-armv7
             arch: arm_cortex-a15_neon-vfpv4
-          - target: armvirt-64
-            arch: aarch64_cortex-a53
+          - target: armsr-armv8
+            arch: aarch64_generic
           - target: malta-be
             arch: mips_24kc
           - target: x86-generic
