@@ -38,7 +38,7 @@ jobs:
           done
           JSON_LIST="{\"runner\": [\"ubuntu-latest\"],\"targets\":[$TARGET_LIST]}"
           echo "$JSON_LIST" | jq .
-          echo "::set-output name=targets::$JSON_LIST"
+          echo "targets=$JSON_LIST" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build ImageBuilder image for ${{ matrix.targets }}
