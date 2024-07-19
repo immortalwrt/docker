@@ -28,6 +28,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Free disk spaces
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi $(docker images -q)
+          sudo -E apt-get -y purge azure-cli dotnet* firefox ghc* google* llvm* moby* mongodb* openjdk* powershell zulu*
+          sudo -E apt-get -y autoremove --purge
+          sudo -E rm -rf $AGENT_TOOLSDIRECTORY /usr/local/lib/android /usr/share/dotnet
+
       - name: Checkout docker repo
         uses: actions/checkout@v4
 
