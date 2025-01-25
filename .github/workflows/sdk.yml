@@ -47,6 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.generate_targets.outputs.targets)}}
+      max-parallel: 10
 
     steps:
       - name: Free disk spaces
