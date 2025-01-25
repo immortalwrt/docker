@@ -32,7 +32,7 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          docker rmi $(docker images -q)
+          for i in $(docker images -q); do docker rmi "$i"; done
           sudo -E apt-get -y purge azure-cli dotnet* firefox ghc* google* llvm* moby* mongodb* openjdk* powershell zulu*
           sudo -E apt-get -y autoremove --purge
           sudo -E rm -rf $AGENT_TOOLSDIRECTORY /usr/local/lib/android /usr/share/dotnet
