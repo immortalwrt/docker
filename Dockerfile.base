@@ -4,7 +4,6 @@ RUN apt-get update -qq && \
     apt-get install -y \
         build-essential \
         ccache \
-        clang \
         cpio \
         curl \
         file \
@@ -35,6 +34,14 @@ RUN apt-get update -qq && \
         wget \
         zlib1g-dev \
         zstd \
+        && echo "deb https://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-18 main" > /etc/apt/sources.list.d/llvm-toolchain.list \
+        && curl -fsL https://apt.llvm.org/llvm-snapshot.gpg.key -o /etc/apt/trusted.gpg.d/llvm-toolchain.asc \
+        && apt-get update -qq \
+        && apt-get install -y clang-18 libclang-18-dev lld-18 \
+        && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 180 \
+        && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 180 \
+        && update-alternatives --install /usr/bin/clang-cpp clang-cpp /usr/bin/clang-cpp-18 180 \
+        && update-alternatives --install /usr/bin/lld lld /usr/bin/lld-18 180 \
         && apt-get -y autoremove \
         && apt-get clean \
         && rm -rf /var/lib/apt/lists/*
