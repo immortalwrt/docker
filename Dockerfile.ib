@@ -6,5 +6,5 @@ COPY --chown=build:build ./ib /home/build/immortalwrt
 RUN chown build:build /home/build/immortalwrt/
 
 USER build
-ENV HOME /home/build
+ENV HOME=/home/build
 WORKDIR /home/build/immortalwrt/
