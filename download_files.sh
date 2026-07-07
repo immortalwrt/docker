@@ -36,7 +36,7 @@ case "$1" in
 	tar -vxf "$IB_NAME" -C "ib"/ --strip-components 1
 	;;
 "rootfs")
-	ROOTFS_NAME="$(curl -A "$CURL_UA" -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep "\-rootfs.tar.gz" | cut -d "*" -f 2)"
+	ROOTFS_NAME="$(curl -A "$CURL_UA" -fsSL "$DOWNLOAD_URL/$DOWNLOAD_PATH/sha256sums" | grep "$TARGET-rootfs.tar.gz" | cut -d "*" -f 2)"
 	curl --retry 3 --retry-all-errors --retry-delay 10 -A "$CURL_UA" -fLO "$DOWNLOAD_URL/$DOWNLOAD_PATH/$ROOTFS_NAME"
 	verify_shasum "$ROOTFS_NAME"
 	mkdir -p "rootfs"
